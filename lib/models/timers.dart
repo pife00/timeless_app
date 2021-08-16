@@ -1,7 +1,5 @@
 class Timers {
-  String name;
-  String minutes;
-  String pc;
+ final String name;
 
-  Timers(this.name, this.minutes, this.pc);
+  Timers({required this.name});
 }

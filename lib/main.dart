@@ -1,7 +1,8 @@
+import 'package:background/models/sound_player.dart';
 import 'package:flutter/material.dart';
 import './screens/timers_screens.dart';
-import 'screens/timer_config_screen.dart';
 import './utils/colors.dart';
+
 
 void main() {
   runApp(MaterialApp(
@@ -16,20 +17,43 @@ void main() {
         )),
         cardColor: scaffoldColor,
         scaffoldBackgroundColor: Colors.indigo[100]),
-    routes: {TimerConfig.routeName: (context) => TimerConfig()},
   ));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
+
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+
+  final player = SoundPlayer();
+
+  @override
+  void initState() { 
+    
+    super.initState();
+    
+  }
+
+  void play(){
+
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Timer"),
-      ),
-      body: TimerScreens(),
-    );
+        appBar: AppBar(
+          title: Text("Timer"),
+        ),
+        body: TextButton(
+          child: Text('Press me'),
+          onPressed: () async{
+            await player.play();
+          },
+        ));
+    // TimerScreens()
   }
 }

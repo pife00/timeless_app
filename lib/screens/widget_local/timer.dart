@@ -5,17 +5,22 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 class TimerW extends StatefulWidget {
+
+  final String name;
+
+  TimerW(this.name);
+
   @override
   _TimerWState createState() => _TimerWState();
 }
 
 class _TimerWState extends State<TimerW> {
+  
   int minutes = 1;
   int seconds = 0;
   int secondsTotal = 0;
   bool session = false;
 
-  String name = "PC 1";
   String timerShow = "00 : 00";
   Timer? _timer;
 
@@ -33,6 +38,9 @@ class _TimerWState extends State<TimerW> {
           timerShow = prettyShowTimer(seconds);
         });
         if (seconds == secondsTotal) {
+          setState(() {
+            timerShow = '00 : 00';
+          });
           stop();
         }
       });
@@ -41,8 +49,9 @@ class _TimerWState extends State<TimerW> {
 
   String prettyShowTimer(int numb) {
     //var hours = (numb / secondsTotal).floor();
-    var minutes = (numb / 60).floor();
-    var seconds = numb % 60;
+    var totalMinutes = secondsTotal / 60;
+    var minutes = (totalMinutes).toInt() - (numb/60).floor();
+    var seconds = ((numb % 60)-60) * -1;
 
     //var displayH = hours < 10 ? '0$hours' : null;
     var displayM = minutes < 10 ? '0$minutes' : minutes;
@@ -65,8 +74,20 @@ class _TimerWState extends State<TimerW> {
     });
   }
 
+  void getMinutes(int minutes){
+    setState(() {
+      this.minutes = minutes;
+      minutes < 10 ? timerShow = "0$minutes : 00" : timerShow = "$minutes : 00";
+    });
+  }
+
   void enterConfig(BuildContext context) {
-    Navigator.pushNamed(context, TimerConfig.routeName, arguments: {'PC': '1'});
+    showModalBottomSheet(
+      context: context, 
+    builder: (BuildContext context){
+     return TimerConfig(getMinutes);
+    });
+    //Navigator.pushNamed(context, TimerConfig.routeName, arguments: {'PC': '1'});
   }
 
   @override
@@ -88,7 +109,7 @@ class _TimerWState extends State<TimerW> {
                     width: 175,
                     child: Column(
                       children: <Widget>[
-                        Text(name),
+                        Text(widget.name),
                         FittedBox(
                           fit: BoxFit.fitWidth,
                           child: Text(
