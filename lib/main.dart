@@ -1,8 +1,7 @@
-import 'package:background/models/sound_player.dart';
+import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:flutter/material.dart';
 import './screens/timers_screens.dart';
 import './utils/colors.dart';
-
 
 void main() {
   runApp(MaterialApp(
@@ -20,6 +19,8 @@ void main() {
   ));
 }
 
+final audioPlayer = AssetsAudioPlayer();
+
 class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
 
@@ -28,18 +29,10 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-
-  final player = SoundPlayer();
-
-  @override
-  void initState() { 
-    
-    super.initState();
-    
-  }
-
-  void play(){
-
+  void play() {
+    audioPlayer.open(
+      Audio("assets/audios/rin.mp3"),
+    );
   }
 
   @override
@@ -50,9 +43,7 @@ class _MyAppState extends State<MyApp> {
         ),
         body: TextButton(
           child: Text('Press me'),
-          onPressed: () async{
-            await player.play();
-          },
+          onPressed: play,
         ));
     // TimerScreens()
   }

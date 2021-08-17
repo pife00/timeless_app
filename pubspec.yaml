@@ -25,7 +25,8 @@ dependencies:
     sdk: flutter
   hexcolor: ^2.0.4
   numberpicker: ^2.1.1
-  flutter_sound_lite: ^8.3.9
+  assets_audio_player: ^3.0.3+6
+  
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -48,8 +49,8 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  #assets:
-  #    - assets/audios/
+  assets:
+      - assets/audios/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
