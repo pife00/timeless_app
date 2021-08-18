@@ -1,3 +1,4 @@
+import 'package:background/models/audio_assets.dart';
 import 'package:background/utils/colors.dart';
 
 import '../timer_config_screen.dart';
@@ -5,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 class TimerW extends StatefulWidget {
-
   final String name;
 
   TimerW(this.name);
@@ -15,11 +15,13 @@ class TimerW extends StatefulWidget {
 }
 
 class _TimerWState extends State<TimerW> {
-  
+  AudioPlayer audio = AudioPlayer();
+
   int minutes = 1;
   int seconds = 0;
   int secondsTotal = 0;
   bool session = false;
+  bool timeEnd = true;
 
   String timerShow = "00 : 00";
   Timer? _timer;
@@ -42,6 +44,8 @@ class _TimerWState extends State<TimerW> {
             timerShow = '00 : 00';
           });
           stop();
+
+          audio.play();
         }
       });
     }
@@ -50,8 +54,8 @@ class _TimerWState extends State<TimerW> {
   String prettyShowTimer(int numb) {
     //var hours = (numb / secondsTotal).floor();
     var totalMinutes = secondsTotal / 60;
-    var minutes = (totalMinutes).toInt() - (numb/60).floor();
-    var seconds = ((numb % 60)-60) * -1;
+    var minutes = (totalMinutes).toInt() - (numb / 60).floor();
+    var seconds = ((numb % 60) - 60) * -1;
 
     //var displayH = hours < 10 ? '0$hours' : null;
     var displayM = minutes < 10 ? '0$minutes' : minutes;
@@ -74,7 +78,7 @@ class _TimerWState extends State<TimerW> {
     });
   }
 
-  void getMinutes(int minutes){
+  void getMinutes(int minutes) {
     setState(() {
       this.minutes = minutes;
       minutes < 10 ? timerShow = "0$minutes : 00" : timerShow = "$minutes : 00";
@@ -83,11 +87,20 @@ class _TimerWState extends State<TimerW> {
 
   void enterConfig(BuildContext context) {
     showModalBottomSheet(
-      context: context, 
-    builder: (BuildContext context){
-     return TimerConfig(getMinutes);
-    });
+        context: context,
+        builder: (BuildContext context) {
+          return TimerConfig(getMinutes);
+        });
     //Navigator.pushNamed(context, TimerConfig.routeName, arguments: {'PC': '1'});
+  }
+
+  Widget dialog(BuildContext context) {
+    return SimpleDialogOption(
+      onPressed: () {
+        Navigator.pop(context);
+      },
+      child: Text('Hello'),
+    );
   }
 
   @override
@@ -143,7 +156,8 @@ class _TimerWState extends State<TimerW> {
                           isActive = value;
                         });
                         isActive ? start() : stop();
-                      })
+                      }),
+                  //timeEnd ? dialog(context) : SizedBox()
                 ],
               ),
             ),

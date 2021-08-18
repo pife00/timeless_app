@@ -26,6 +26,7 @@ dependencies:
   hexcolor: ^2.0.4
   numberpicker: ^2.1.1
   assets_audio_player: ^3.0.3+6
+  flutter_riverpod: ^0.14.0+3
   
 
 
