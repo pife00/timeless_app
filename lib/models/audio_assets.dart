@@ -17,7 +17,7 @@ class AudioPlayer {
     );
   }
 
-  pause() {
+  stop() {
     _audioPlayer.stop();
   }
 }

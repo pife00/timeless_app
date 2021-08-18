@@ -17,7 +17,7 @@ class TimerW extends StatefulWidget {
 class _TimerWState extends State<TimerW> {
   AudioPlayer audio = AudioPlayer();
 
-  int minutes = 1;
+  int minutes = 0;
   int seconds = 0;
   int secondsTotal = 0;
   bool session = false;
@@ -43,8 +43,11 @@ class _TimerWState extends State<TimerW> {
           setState(() {
             timerShow = '00 : 00';
           });
+          setState(() {
+            isActive = !isActive;
+          });
           stop();
-
+          dialog(context);
           audio.play();
         }
       });
@@ -54,8 +57,12 @@ class _TimerWState extends State<TimerW> {
   String prettyShowTimer(int numb) {
     //var hours = (numb / secondsTotal).floor();
     var totalMinutes = secondsTotal / 60;
-    var minutes = (totalMinutes).toInt() - (numb / 60).floor();
+    var minutes = ((totalMinutes).toInt() - (numb / 60).floor()) - 1;
     var seconds = ((numb % 60) - 60) * -1;
+
+    if (minutes < 0) {
+      minutes = 0;
+    }
 
     //var displayH = hours < 10 ? '0$hours' : null;
     var displayM = minutes < 10 ? '0$minutes' : minutes;
@@ -72,6 +79,7 @@ class _TimerWState extends State<TimerW> {
 
   void reset() {
     setState(() {
+      minutes = 0;
       seconds = 0;
       secondsTotal = 0;
       timerShow = '00 : 00';
@@ -91,24 +99,36 @@ class _TimerWState extends State<TimerW> {
         builder: (BuildContext context) {
           return TimerConfig(getMinutes);
         });
-    //Navigator.pushNamed(context, TimerConfig.routeName, arguments: {'PC': '1'});
   }
 
-  Widget dialog(BuildContext context) {
-    return SimpleDialogOption(
-      onPressed: () {
-        Navigator.pop(context);
-      },
-      child: Text('Hello'),
-    );
+  void dialog(BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return SimpleDialog(
+            title: Text("Time end ${widget.name}"),
+            children: <Widget>[
+              SimpleDialogOption(
+                onPressed: () {
+                  audio.stop();
+                  Navigator.pop(context);
+                },
+                child: Text('OK'),
+              )
+            ],
+          );
+        });
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(top: 1.5, left: 3, right: 3),
+      padding: EdgeInsets.only(left: 2, right: 2, top: 10, bottom: 10),
       child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3)),
+        color: isActive ? Colors.white : null,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+            side: BorderSide(color: Color.fromRGBO(102, 163, 255,0.30))),
         child: Row(
           children: <Widget>[
             InkWell(
@@ -118,19 +138,30 @@ class _TimerWState extends State<TimerW> {
                 child: Container(
                     alignment: Alignment.center,
                     margin: EdgeInsets.symmetric(horizontal: 10),
-                    height: 110,
+                    height: 120,
                     width: 175,
                     child: Column(
                       children: <Widget>[
-                        Text(widget.name),
+                        SizedBox(height: 5,),
+                        Text(widget.name,
+                            style: Theme.of(context).textTheme.headline6),
                         FittedBox(
                           fit: BoxFit.fitWidth,
                           child: Text(
                             '$timerShow',
                             style: TextStyle(
                                 fontSize: 50,
-                                color: primaryColor,
+                                color: Theme.of(context).primaryColor,
                                 fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        Container(
+                          margin: EdgeInsets.symmetric(horizontal: 10),
+                          child: Row(
+                            children: <Widget>[
+                              Text(minutes > 0 ? '${minutes}M' : '',
+                                  style: Theme.of(context).textTheme.headline6),
+                            ],
                           ),
                         ),
                       ],
@@ -157,7 +188,6 @@ class _TimerWState extends State<TimerW> {
                         });
                         isActive ? start() : stop();
                       }),
-                  //timeEnd ? dialog(context) : SizedBox()
                 ],
               ),
             ),

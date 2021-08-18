@@ -1,4 +1,3 @@
-import 'package:background/models/audio_assets.dart';
 import 'package:flutter/material.dart';
 import './screens/timers_screens.dart';
 import './utils/colors.dart';
@@ -9,21 +8,24 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  final audio = AudioPlayer();
+  
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: "Timer",
       theme: ThemeData(
-          primaryColor: primaryColor,
+          primaryColor: Colors.indigo[600],
           textButtonTheme: TextButtonThemeData(
               style: TextButton.styleFrom(
             primary: accentColor,
             textStyle: TextStyle(fontSize: 16, color: Colors.black12),
           )),
-          cardColor: scaffoldColor,
-          scaffoldBackgroundColor: Colors.indigo[100]),
+          cardColor: Colors.indigo[50],
+          textTheme: TextTheme(
+            headline6: TextStyle(fontSize: 18,color: Colors.indigo[600])
+          ),
+          scaffoldBackgroundColor: Colors.indigo[50]),
       home: Scaffold(
           appBar: AppBar(
             title: Text("Timer"),
