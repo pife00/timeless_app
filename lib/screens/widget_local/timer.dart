@@ -1,9 +1,8 @@
 import 'package:background/models/audio_assets.dart';
-import 'package:background/utils/colors.dart';
-
 import '../timer_config_screen.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:cron/cron.dart';
 
 class TimerW extends StatefulWidget {
   final String name;
@@ -29,7 +28,7 @@ class _TimerWState extends State<TimerW> {
   bool isActive = false;
 
   void start() {
-    if (session == false) {
+    /*if (session == false) {
       secondsTotal = minutes * 60;
     }
 
@@ -51,7 +50,8 @@ class _TimerWState extends State<TimerW> {
           audio.play();
         }
       });
-    }
+    }*/
+
   }
 
   String prettyShowTimer(int numb) {
@@ -123,12 +123,12 @@ class _TimerWState extends State<TimerW> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(left: 2, right: 2, top: 10, bottom: 10),
+      padding: EdgeInsets.all(2),
       child: Card(
         color: isActive ? Colors.white : null,
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
-            side: BorderSide(color: Color.fromRGBO(102, 163, 255,0.30))),
+            side: BorderSide(color: Color.fromRGBO(102, 163, 255, 0.30))),
         child: Row(
           children: <Widget>[
             InkWell(
@@ -138,11 +138,15 @@ class _TimerWState extends State<TimerW> {
                 child: Container(
                     alignment: Alignment.center,
                     margin: EdgeInsets.symmetric(horizontal: 10),
-                    height: 120,
+                    height: MediaQuery.of(context).size.height / 5,
                     width: 175,
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
-                        SizedBox(height: 5,),
+                        SizedBox(
+                          height: 5,
+                        ),
                         Text(widget.name,
                             style: Theme.of(context).textTheme.headline6),
                         FittedBox(
@@ -152,7 +156,7 @@ class _TimerWState extends State<TimerW> {
                             style: TextStyle(
                                 fontSize: 50,
                                 color: Theme.of(context).primaryColor,
-                                fontWeight: FontWeight.bold),
+                                fontWeight: FontWeight.w200),
                           ),
                         ),
                         Container(
