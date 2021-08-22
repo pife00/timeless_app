@@ -8,11 +8,13 @@ void main() {
   runApp(MyApp());
 }
 
+String area = "Step on plate";
+
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => ,
+      create: (context) => TimerProvider(),
       child: MaterialApp(
         title: "Timer",
         theme: ThemeData(

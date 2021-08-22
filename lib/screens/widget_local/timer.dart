@@ -2,6 +2,33 @@ import 'package:background/models/audio_assets.dart';
 import '../timer_config_screen.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'dart:isolate';
+
+void startCallback() {
+  int updateCount = 0;
+
+  // The initDispatcher function must be called to handle the task in the background.
+  // And the code to be executed except for the variable declaration
+  // must be written inside the initDispatcher function.
+  FlutterForegroundTask.initDispatcher((timestamp, sendPort) async {
+    final strTimestamp = timestamp.toString();
+    print('startCallback - timestamp: $strTimestamp');
+
+    FlutterForegroundTask.update(
+      notificationTitle: 'startCallback',
+      notificationText: strTimestamp,
+    );
+
+    // Send data to the main isolate.
+    sendPort?.send(timestamp);
+    sendPort?.send(updateCount);
+
+    updateCount++;
+  }, onDestroy: (timestamp) async {
+    print('Dispatcher is dead.. x_x');
+  });
+}
 
 class TimerW extends StatefulWidget {
   final String name;
@@ -26,7 +53,67 @@ class _TimerWState extends State<TimerW> {
 
   bool isActive = false;
 
+  ReceivePort? _receivePort;
+
+  void _initForegroundTask() {
+    FlutterForegroundTask.init(
+      androidNotificationOptions: AndroidNotificationOptions(
+        channelId: 'notification_channel_id',
+        channelName: 'Foreground Notification',
+        channelDescription:
+            'This notification appears when a foreground task is running.',
+        channelImportance: NotificationChannelImportance.LOW,
+        priority: NotificationPriority.LOW,
+        iconData: NotificationIconData(
+          resType: ResourceType.mipmap,
+          resPrefix: ResourcePrefix.ic,
+          name: 'launcher',
+        ),
+      ),
+      iosNotificationOptions: IOSNotificationOptions(
+        showNotification: true,
+        playSound: false,
+      ),
+      foregroundTaskOptions: ForegroundTaskOptions(
+        interval: 5000,
+        autoRunOnBoot: true,
+      ),
+      printDevLog: true,
+    );
+  }
+
+  void _startForegroundTask() async {
+    _receivePort = await FlutterForegroundTask.start(
+      notificationTitle: 'Foreground task is running',
+      notificationText: 'Tap to return to the app',
+      callback: startCallback,
+    );
+
+    _receivePort?.listen((message) {
+      if (message is DateTime)
+        print('receive timestamp: $message');
+      else if (message is int) print('receive updateCount: $message');
+    });
+  }
+
+  void _stopForegroundTask() {
+    FlutterForegroundTask.stop();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _initForegroundTask();
+  }
+
+  @override
+  void dispose() {
+    _receivePort?.close();
+    super.dispose();
+  }
+
   void start() {
+    _startForegroundTask();
     /*if (session == false) {
       secondsTotal = minutes * 60;
     }
