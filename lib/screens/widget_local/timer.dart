@@ -2,7 +2,6 @@ import 'package:background/models/audio_assets.dart';
 import '../timer_config_screen.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:cron/cron.dart';
 
 class TimerW extends StatefulWidget {
   final String name;
@@ -51,7 +50,6 @@ class _TimerWState extends State<TimerW> {
         }
       });
     }*/
-
   }
 
   String prettyShowTimer(int numb) {

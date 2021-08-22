@@ -1,8 +1,8 @@
-
-
 import 'package:background/models/timers.dart';
 import 'package:flutter/material.dart';
 import './widget_local/timer.dart';
+import 'package:provider/provider.dart';
+import '../provider/timers_provider.dart';
 
 class TimerScreens extends StatefulWidget {
   @override
@@ -12,36 +12,28 @@ class TimerScreens extends StatefulWidget {
 class _TimerScreensState extends State<TimerScreens> {
   int _currentTimers = 4;
 
-  List<Timers> computers = [
-    Timers(name: "PC" + 1.toString()),
-    Timers(name: "PC" + 2.toString()),
-    Timers(name: "PC" + 3.toString()),
-    Timers(name: "PC" + 4.toString())
-  ];
-
   void addNewTimer() {
     setState(() {
       _currentTimers++;
     });
+    final pcs = Provider.of<TimerProvider>(context);
 
     String name = 'PC' + (_currentTimers).toString();
 
     var newTimer = Timers(name: name);
-
-    setState(() {
-      computers.add(newTimer);
-    });
+    pcs.addTimer(newTimer);
   }
 
   @override
   Widget build(BuildContext context) {
+    final pcs = Provider.of<TimerProvider>(context);
+    final computers = pcs.items;
     return Scaffold(
-      body:ListView(
-        padding: EdgeInsets.all(2),
-        children:computers.map((el){
-          return TimerW(el.name);
-        }).toList()
-      ),
+      body: ListView(
+          padding: EdgeInsets.all(2),
+          children: computers.map((el) {
+            return TimerW(el.name);
+          }).toList()),
       floatingActionButton: FloatingActionButton(
         onPressed: addNewTimer,
         backgroundColor: Colors.indigo[600],
