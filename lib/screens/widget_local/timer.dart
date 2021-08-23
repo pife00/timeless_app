@@ -5,28 +5,13 @@ import 'dart:async';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'dart:isolate';
 
-void startCallback() {
-  int updateCount = 0;
+Timer? timer;
 
-  // The initDispatcher function must be called to handle the task in the background.
-  // And the code to be executed except for the variable declaration
-  // must be written inside the initDispatcher function.
-  FlutterForegroundTask.initDispatcher((timestamp, sendPort) async {
-    final strTimestamp = timestamp.toString();
-    print('startCallback - timestamp: $strTimestamp');
-
-    FlutterForegroundTask.update(
-      notificationTitle: 'startCallback',
-      notificationText: strTimestamp,
-    );
-
-    // Send data to the main isolate.
-    sendPort?.send(timestamp);
-    sendPort?.send(updateCount);
-
-    updateCount++;
-  }, onDestroy: (timestamp) async {
-    print('Dispatcher is dead.. x_x');
+timerTick(SendPort sendPort) {
+  int count = 0;
+  timer = Timer.periodic(Duration(seconds: 1), (timer) {
+    count++;
+    sendPort.send(count);
   });
 }
 
@@ -44,99 +29,64 @@ class _TimerWState extends State<TimerW> {
 
   int minutes = 0;
   int seconds = 0;
+  String futureEnd = '';
   int secondsTotal = 0;
   bool session = false;
   bool timeEnd = true;
 
   String timerShow = "00 : 00";
-  Timer? _timer;
 
   bool isActive = false;
-
+  Isolate? isolate;
   ReceivePort? _receivePort;
-
-  void _initForegroundTask() {
-    FlutterForegroundTask.init(
-      androidNotificationOptions: AndroidNotificationOptions(
-        channelId: 'notification_channel_id',
-        channelName: 'Foreground Notification',
-        channelDescription:
-            'This notification appears when a foreground task is running.',
-        channelImportance: NotificationChannelImportance.LOW,
-        priority: NotificationPriority.LOW,
-        iconData: NotificationIconData(
-          resType: ResourceType.mipmap,
-          resPrefix: ResourcePrefix.ic,
-          name: 'launcher',
-        ),
-      ),
-      iosNotificationOptions: IOSNotificationOptions(
-        showNotification: true,
-        playSound: false,
-      ),
-      foregroundTaskOptions: ForegroundTaskOptions(
-        interval: 5000,
-        autoRunOnBoot: true,
-      ),
-      printDevLog: true,
-    );
-  }
-
-  void _startForegroundTask() async {
-    _receivePort = await FlutterForegroundTask.start(
-      notificationTitle: 'Foreground task is running',
-      notificationText: 'Tap to return to the app',
-      callback: startCallback,
-    );
-
-    _receivePort?.listen((message) {
-      if (message is DateTime)
-        print('receive timestamp: $message');
-      else if (message is int) print('receive updateCount: $message');
-    });
-  }
-
-  void _stopForegroundTask() {
-    FlutterForegroundTask.stop();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _initForegroundTask();
-  }
 
   @override
   void dispose() {
     _receivePort?.close();
+    isolate?.kill();
     super.dispose();
   }
 
-  void start() {
-    _startForegroundTask();
-    /*if (session == false) {
+  void start() async {
+    _receivePort = ReceivePort();
+
+    try {
+      isolate = await Isolate.spawn(timerTick, _receivePort!.sendPort);
+      _receivePort?.listen((count) {
+        timerHandler(count);
+      });
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  timerHandler(int count) {
+    if (session == false) {
       secondsTotal = minutes * 60;
+      session = true;
+      var t = DateTime.now();
+      var nearEnd = t.add(Duration(milliseconds: (secondsTotal * 1000)));
+      print(secondsTotal);
+      futureEnd = '${nearEnd.hour} : ${nearEnd.minute}';
     }
 
     if (seconds < secondsTotal) {
-      _timer = Timer.periodic(Duration(seconds: 1), (_) {
-        setState(() {
-          seconds++;
-          timerShow = prettyShowTimer(seconds);
-        });
-        if (seconds == secondsTotal) {
-          setState(() {
-            timerShow = '00 : 00';
-          });
-          setState(() {
-            isActive = !isActive;
-          });
-          stop();
-          dialog(context);
-          audio.play();
-        }
+      setState(() {
+        seconds = count;
+        timerShow = prettyShowTimer(seconds);
       });
-    }*/
+      if (seconds == secondsTotal) {
+        setState(() {
+          timerShow = '00 : 00';
+        });
+        setState(() {
+          isActive = !isActive;
+        });
+        stop();
+        dialog(context);
+        audio.play();
+      }
+    }
   }
 
   String prettyShowTimer(int numb) {
@@ -159,14 +109,22 @@ class _TimerWState extends State<TimerW> {
   }
 
   void stop() {
-    _timer?.cancel();
+    _receivePort?.close();
+    isolate?.kill();
+    if (seconds == secondsTotal) {
+      setState(() {
+        session = false;
+      });
+    }
   }
 
   void reset() {
     setState(() {
       minutes = 0;
       seconds = 0;
+      session = false;
       secondsTotal = 0;
+      futureEnd = '';
       timerShow = '00 : 00';
     });
   }
@@ -247,8 +205,11 @@ class _TimerWState extends State<TimerW> {
                         Container(
                           margin: EdgeInsets.symmetric(horizontal: 10),
                           child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: <Widget>[
                               Text(minutes > 0 ? '${minutes}M' : '',
+                                  style: Theme.of(context).textTheme.headline6),
+                              Text(futureEnd != '' ? '$futureEnd' : '',
                                   style: Theme.of(context).textTheme.headline6),
                             ],
                           ),
