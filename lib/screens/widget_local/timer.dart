@@ -30,6 +30,12 @@ class _TimerWState extends State<TimerW> with WidgetsBindingObserver {
 
   int minutes = 0;
   int seconds = 0;
+
+  int minutesAcc = 0;
+  int moneyAcc = 0;
+
+  double minutesValue = 33.33333333333333;
+
   String futureEnd = '';
   int secondsTotal = 0;
   bool session = false;
@@ -40,6 +46,8 @@ class _TimerWState extends State<TimerW> with WidgetsBindingObserver {
   bool isActive = false;
   Isolate? isolate;
   ReceivePort? _receivePort;
+
+  int get money => (minutes * minutesValue).ceil();
 
   late AppLifecycleState _notification;
 
@@ -156,6 +164,7 @@ class _TimerWState extends State<TimerW> with WidgetsBindingObserver {
       if (seconds == secondsTotal) {
         setState(() {
           session = false;
+          minutes = 0;
         });
       }
     }
@@ -164,6 +173,7 @@ class _TimerWState extends State<TimerW> with WidgetsBindingObserver {
   void reset() {
     setState(() {
       minutes = 0;
+      minutesAcc = 0;
       seconds = 0;
       session = false;
       secondsTotal = 0;
@@ -175,6 +185,7 @@ class _TimerWState extends State<TimerW> with WidgetsBindingObserver {
   void getMinutes(int minutes) {
     setState(() {
       this.minutes = minutes;
+      this.minutesAcc = minutes;
       minutes < 10 ? timerShow = "0$minutes : 00" : timerShow = "$minutes : 00";
     });
   }
@@ -233,8 +244,18 @@ class _TimerWState extends State<TimerW> with WidgetsBindingObserver {
                         SizedBox(
                           height: 5,
                         ),
-                        Text(widget.name,
-                            style: Theme.of(context).textTheme.headline6),
+                        Container(
+                          margin: EdgeInsets.symmetric(horizontal: 10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: <Widget>[
+                              Text(widget.name,
+                                  style: Theme.of(context).textTheme.headline6),
+                              Text(minutesAcc > 0 ? '$money' : '',
+                                  style: Theme.of(context).textTheme.headline6),
+                            ],
+                          ),
+                        ),
                         FittedBox(
                           fit: BoxFit.fitWidth,
                           child: Text(
@@ -248,9 +269,9 @@ class _TimerWState extends State<TimerW> with WidgetsBindingObserver {
                         Container(
                           margin: EdgeInsets.symmetric(horizontal: 10),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: <Widget>[
-                              Text(minutes > 0 ? '${minutes}M' : '',
+                              Text(minutesAcc > 0 ? '${minutesAcc}M' : '',
                                   style: Theme.of(context).textTheme.headline6),
                               Text(futureEnd != '' ? '$futureEnd' : '',
                                   style: Theme.of(context).textTheme.headline6),
