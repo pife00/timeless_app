@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'dart:isolate';
+import 'package:intl/intl.dart';
 
 Timer? timer;
 
@@ -24,7 +25,7 @@ class TimerW extends StatefulWidget {
   _TimerWState createState() => _TimerWState();
 }
 
-class _TimerWState extends State<TimerW> {
+class _TimerWState extends State<TimerW> with WidgetsBindingObserver {
   AudioPlayer audio = AudioPlayer();
 
   int minutes = 0;
@@ -40,39 +41,72 @@ class _TimerWState extends State<TimerW> {
   Isolate? isolate;
   ReceivePort? _receivePort;
 
+  late AppLifecycleState _notification;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance!.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    setState(() {
+      _notification = state;
+    });
+    if (_notification == AppLifecycleState.paused) {
+      if (minutes > 0) {
+        stop();
+        start();
+      }
+    }
+
+    if (_notification == AppLifecycleState.resumed) {}
+  }
+
   @override
   void dispose() {
     _receivePort?.close();
     isolate?.kill();
+    print('dispose here');
+    WidgetsBinding.instance!.removeObserver(this);
     super.dispose();
   }
 
   void start() async {
-    _receivePort = ReceivePort();
+    if (minutes > 0) {
+      _receivePort = ReceivePort();
 
-    try {
-      isolate = await Isolate.spawn(timerTick, _receivePort!.sendPort);
-      _receivePort?.listen((count) {
-        timerHandler(count);
-      });
-    } catch (e) {
-      print(e);
+      try {
+        isolate = await Isolate.spawn(timerTick, _receivePort!.sendPort);
+
+        _receivePort?.listen((count) {
+          timerHandler(count);
+        });
+      } catch (e) {
+        print(e);
+      }
+    } else {
+      setState(() => isActive = !isActive);
     }
   }
 
-  timerHandler(int count) {
+  void timerHandler(int count) {
     if (session == false) {
-      secondsTotal = minutes * 60;
-      session = true;
       var t = DateTime.now();
-      var nearEnd = t.add(Duration(milliseconds: (secondsTotal * 1000)));
-      print(secondsTotal);
-      futureEnd = '${nearEnd.hour} : ${nearEnd.minute}';
+
+      setState(() {
+        session = true;
+        secondsTotal = minutes * 60;
+        var nearEnd = t.add(Duration(milliseconds: (secondsTotal * 1000)));
+        var twelve = DateFormat("h:mma").format(nearEnd);
+        futureEnd = '$twelve';
+      });
     }
 
     if (seconds < secondsTotal) {
       setState(() {
-        seconds = count;
+        seconds++;
         timerShow = prettyShowTimer(seconds);
       });
       if (seconds == secondsTotal) {
@@ -82,7 +116,7 @@ class _TimerWState extends State<TimerW> {
         setState(() {
           isActive = !isActive;
         });
-        stop();
+        finish();
         dialog(context);
         audio.play();
       }
@@ -109,12 +143,21 @@ class _TimerWState extends State<TimerW> {
   }
 
   void stop() {
-    _receivePort?.close();
-    isolate?.kill();
-    if (seconds == secondsTotal) {
-      setState(() {
-        session = false;
-      });
+    if (session == true) {
+      _receivePort?.close();
+      isolate?.kill();
+    }
+  }
+
+  void finish() {
+    if (session == true) {
+      _receivePort?.close();
+      isolate?.kill();
+      if (seconds == secondsTotal) {
+        setState(() {
+          session = false;
+        });
+      }
     }
   }
 
