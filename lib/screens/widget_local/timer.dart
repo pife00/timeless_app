@@ -1,4 +1,5 @@
 import 'package:background/models/audio_assets.dart';
+import 'package:vibration/vibration.dart';
 import '../timer_config_screen.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
@@ -76,7 +77,6 @@ class _TimerWState extends State<TimerW> with WidgetsBindingObserver {
   void dispose() {
     _receivePort?.close();
     isolate?.kill();
-    print('dispose here');
     WidgetsBinding.instance!.removeObserver(this);
     super.dispose();
   }
@@ -165,8 +165,12 @@ class _TimerWState extends State<TimerW> with WidgetsBindingObserver {
         setState(() {
           session = false;
           minutes = 0;
+          secondsTotal = 0;
+          seconds = 0;
         });
       }
+
+      vibrate();
     }
   }
 
@@ -174,9 +178,9 @@ class _TimerWState extends State<TimerW> with WidgetsBindingObserver {
     setState(() {
       minutes = 0;
       minutesAcc = 0;
+      secondsTotal = 0;
       seconds = 0;
       session = false;
-      secondsTotal = 0;
       futureEnd = '';
       timerShow = '00 : 00';
     });
@@ -215,6 +219,12 @@ class _TimerWState extends State<TimerW> with WidgetsBindingObserver {
             ],
           );
         });
+  }
+
+  void vibrate() async {
+    if (await Vibration.hasVibrator()) {
+      Vibration.vibrate(pattern: [1000, 500, 1000, 500]);
+    }
   }
 
   @override
