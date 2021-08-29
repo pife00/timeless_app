@@ -63,8 +63,8 @@ class _TimerWState extends State<TimerW> with WidgetsBindingObserver {
     setState(() {
       _notification = state;
     });
-    if (_notification == AppLifecycleState.paused) {
-      if (minutes > 0) {
+    if (_notification == AppLifecycleState.inactive) {
+      if (minutes > 0 && isActive == true) {
         stop();
         start();
       }
